@@ -98,7 +98,7 @@ export default function AuctionPage() {
           <div className="text-7xl mb-4">🔒</div>
           <h1 className="text-3xl font-bold text-white mb-3">Puja no disponible</h1>
           <p className="text-white/50 mb-6">Esta puja aún no está activa.</p>
-          <a href="/" className="inline-block px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">← Volver al inicio</a>
+          <a href="/" className="inline-block px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">← Ver pujas activas</a>
         </div>
       </div>
     );
@@ -113,14 +113,12 @@ export default function AuctionPage() {
       {showCelebration && <Celebration bids={bids} />}
 
       <div className="max-w-2xl mx-auto px-4 pt-4">
-        {/* Barra superior */}
+        {/* Barra superior con navegación clara */}
         <div className="flex items-center justify-between mb-4">
-          <a href="/" className="text-white/60 hover:text-teal-400 text-sm">← Inicio</a>
-          {!isFinished && auction.is_active && (
-            <button onClick={() => router.push('/auction/' + auctionId + '/presentation')} className="text-teal-300 text-sm font-semibold hover:text-teal-200">
-              🎬 Presentación
-            </button>
-          )}
+          <a href="/" className="text-white/60 hover:text-teal-400 text-sm font-medium transition-colors">← Portal de pujas</a>
+          <a href="https://www.mboloeg.com/" target="_blank" className="text-white/60 hover:text-teal-400 text-sm font-medium transition-colors flex items-center gap-1">
+            Mbôloeg.com ↗
+          </a>
         </div>
 
         {/* Hero */}
@@ -177,7 +175,7 @@ export default function AuctionPage() {
               <input
                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/30 focus:outline-none focus:border-teal-500 text-lg font-bold tabular-nums"
                 type="number"
-                placeholder={'Monto en XAF (mín. ' + (highestBid + 1) + ')'}
+                placeholder={'Monto en XAF (mín. ' + (highestBid + 100.000) + ')'}
                 value={form.amount}
                 onChange={e => setForm({...form, amount: e.target.value})}
                 required

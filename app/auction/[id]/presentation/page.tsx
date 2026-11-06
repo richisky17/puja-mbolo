@@ -6,6 +6,7 @@ import Countdown from '@/components/Countdown';
 import Celebration from '@/components/Celebration';
 import RankingList from '@/components/RankingList';
 import Podium from '@/components/Podium';
+import Logo from '@/components/Logo';
 
 export default function PresentationPage() {
   const params = useParams();
@@ -61,7 +62,7 @@ export default function PresentationPage() {
         <div>
           <div className="text-7xl mb-4">🔒</div>
           <h1 className="text-3xl font-bold text-white mb-3">No disponible</h1>
-          <button onClick={() => router.push('/')} className="px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">← Inicio</button>
+          <button onClick={() => router.push('/')} className="px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">← Ver pujas activas</button>
         </div>
       </div>
     );
@@ -76,10 +77,16 @@ export default function PresentationPage() {
       {showCelebration && <Celebration bids={bids} />}
 
       <div className="max-w-3xl mx-auto px-4 pt-4">
-        {/* Barra superior */}
-        <div className="flex items-center justify-between mb-4">
-          <a href={'/auction/' + auctionId} className="text-white/60 hover:text-teal-400 text-sm">← Pujar</a>
-          <span className="text-xs bg-teal-500/15 text-teal-300 px-3 py-1 rounded-full border border-teal-400/30 animate-pulse">● EN VIVO</span>
+        {/* Barra superior con Logo y navegación clara */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-6">
+          <div className="flex items-center gap-4 flex-wrap">
+            <a href="/" className="text-white/60 hover:text-teal-400 text-sm font-medium transition-colors">← Portal</a>
+            <div className="w-px h-4 bg-white/20 hidden sm:block"></div>
+            <a href="https://www.mboloeg.com/" target="_blank" className="text-emerald-400 hover:text-emerald-300 text-sm font-semibold transition-colors flex items-center gap-1">
+              Mbôloeg.com ↗
+            </a>
+          </div>
+          <span className="text-xs bg-teal-500/15 text-teal-300 px-3 py-1 rounded-full border border-teal-400/30 animate-pulse font-semibold">● EN VIVO</span>
         </div>
 
         {/* Hero compacto */}
@@ -134,21 +141,24 @@ export default function PresentationPage() {
             <p className="text-white/50">Esperando las primeras pujas...</p>
           </div>
         )}
+
+        {/* CTA desktop */}
+        {!isFinished && (
+          <div className="hidden md:flex justify-center gap-3 mt-8">
+            <button onClick={() => router.push('/auction/' + auctionId)} className="px-10 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/25 transition-all hover:scale-105">
+              💰 ¡QUIERO PUJAR!
+            </button>
+            <button onClick={() => router.push('/')} className="px-8 py-4 bg-white/5 hover:bg-white/10 border border-white/20 text-white font-semibold rounded-2xl transition-all">
+              ← Otras pujas
+            </button>
+          </div>
+        )}
       </div>
 
       {/* CTA fijo móvil */}
       {!isFinished && (
         <div className="fixed bottom-0 inset-x-0 md:hidden bg-black/80 backdrop-blur-lg border-t border-white/10 px-4 py-3 z-40">
           <button onClick={() => router.push('/auction/' + auctionId)} className="w-full bg-teal-500 active:scale-[0.98] text-white font-bold py-4 rounded-2xl text-lg shadow-lg shadow-teal-500/25">
-            💰 ¡QUIERO PUJAR!
-          </button>
-        </div>
-      )}
-
-      {/* CTA desktop */}
-      {!isFinished && (
-        <div className="hidden md:block text-center">
-          <button onClick={() => router.push('/auction/' + auctionId)} className="px-10 py-4 bg-teal-500 hover:bg-teal-600 text-white font-bold text-lg rounded-2xl shadow-lg shadow-teal-500/25 transition-all hover:scale-105">
             💰 ¡QUIERO PUJAR!
           </button>
         </div>
