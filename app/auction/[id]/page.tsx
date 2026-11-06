@@ -22,6 +22,9 @@ export default function AuctionPage() {
   const [bidSuccess, setBidSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // La puja mínima es 100.000 XAF o la puja más alta + 5.000 XAF
+  const minBid = Math.max(100000, highestBid + 5000);
+
   useEffect(() => {
     if (!auctionId) return;
 
@@ -60,7 +63,11 @@ export default function AuctionPage() {
     e.preventDefault();
     if (!form.avatar_url) { setMessage('Por favor selecciona un avatar'); return; }
     const amount = parseInt(form.amount);
-    if (amount <= highestBid) { setMessage('Tu puja debe ser mayor a ' + highestBid + ' XAF'); return; }
+    
+    if (amount < minBid) { 
+      setMessage('Debes pujar al menos ' + minBid.toLocaleString() + ' XAF'); 
+      return; 
+    }
 
     const { error } = await supabase.from('bids').insert({
       auction_id: auctionId,
@@ -136,7 +143,8 @@ export default function AuctionPage() {
           <div className="text-center mb-8">
             <p className="text-white/50 text-xs uppercase tracking-widest mb-2">Cierra en</p>
             <Countdown endTime={auction.end_time} />
-            {leader && (
+            
+            {leader ? (
               <div className="flex items-center justify-center gap-2 mt-4">
                 {leader.avatar_url ? (
                   <img src={leader.avatar_url} className="w-8 h-8 rounded-full border border-teal-400/50" alt={leader.bidder_name} />
@@ -145,6 +153,11 @@ export default function AuctionPage() {
                 )}
                 <span className="text-white/60 text-sm">Lidera</span>
                 <span className="text-teal-300 font-bold tabular-nums">{leader.amount.toLocaleString()} XAF</span>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <span className="text-white/60 text-sm">Puja inicial desde </span>
+                <span className="text-teal-300 font-bold tabular-nums">100.000 XAF</span>
               </div>
             )}
           </div>
@@ -175,11 +188,11 @@ export default function AuctionPage() {
               <input
                 className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/30 focus:outline-none focus:border-teal-500 text-lg font-bold tabular-nums"
                 type="number"
-                placeholder={'Monto en XAF (mín. ' + (highestBid + 100.000) + ')'}
+                placeholder={'Monto en XAF (mín. ' + minBid.toLocaleString() + ')'}
                 value={form.amount}
                 onChange={e => setForm({...form, amount: e.target.value})}
                 required
-                min={highestBid + 1}
+                min={minBid}
                 inputMode="numeric"
               />
               <AvatarSelector selectedAvatar={form.avatar_url} onSelect={(url) => setForm({...form, avatar_url: url})} />
@@ -203,7 +216,7 @@ export default function AuctionPage() {
           </div>
           <div className="flex-1 text-right">
             <p className="text-white/50 text-[10px] uppercase tracking-wide">Puja alta</p>
-            <p className="text-teal-300 font-bold tabular-nums text-sm">{highestBid.toLocaleString()} XAF</p>
+            <p className="text-teal-300 font-bold tabular-nums text-sm">{highestBid > 0 ? highestBid.toLocaleString() : '100.000'} XAF</p>
           </div>
           <button onClick={scrollToForm} className="bg-teal-500 text-white font-bold px-5 py-3 rounded-xl active:scale-95">
             Pujar
