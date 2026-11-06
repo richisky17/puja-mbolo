@@ -12,7 +12,7 @@ export default function AuctionPage() {
   const params = useParams();
   const router = useRouter();
   const auctionId = params.id as string;
-  
+
   const [auction, setAuction] = useState<any>(null);
   const [bids, setBids] = useState<any[]>([]);
   const [form, setForm] = useState({ bidder_name: '', amount: '', avatar_url: '' });
@@ -21,7 +21,6 @@ export default function AuctionPage() {
   const [message, setMessage] = useState('');
   const [bidSuccess, setBidSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [hasBid, setHasBid] = useState(false);
 
   useEffect(() => {
     if (!auctionId) return;
@@ -30,7 +29,6 @@ export default function AuctionPage() {
       const { data: a } = await supabase.from('auctions').select('*').eq('id', auctionId).single();
       setAuction(a);
       setLoading(false);
-
       if (a) {
         const { data: b } = await supabase.from('bids').select('*').eq('auction_id', auctionId).order('amount', { ascending: false });
         if (b) {
@@ -60,20 +58,9 @@ export default function AuctionPage() {
 
   const handleBid = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!auction?.is_active) {
-      setMessage('Esta puja no está activa');
-      return;
-    }
-    if (!form.avatar_url) {
-      setMessage('Por favor selecciona un avatar');
-      return;
-    }
-
+    if (!form.avatar_url) { setMessage('Por favor selecciona un avatar'); return; }
     const amount = parseInt(form.amount);
-    if (amount <= highestBid) {
-      setMessage('Tu puja debe ser mayor a ' + highestBid + ' XAF');
-      return;
-    }
+    if (amount <= highestBid) { setMessage('Tu puja debe ser mayor a ' + highestBid + ' XAF'); return; }
 
     const { error } = await supabase.from('bids').insert({
       auction_id: auctionId,
@@ -87,169 +74,144 @@ export default function AuctionPage() {
     } else {
       setForm({ ...form, amount: '' });
       setBidSuccess(true);
-      setHasBid(true);
       setMessage('¡Puja registrada con éxito! 🎉');
       setTimeout(() => { setMessage(''); setBidSuccess(false); }, 3000);
     }
   };
 
+  const scrollToForm = () => {
+    document.getElementById('bid-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">⏳</div>
-          <p className="text-white text-xl">Cargando puja...</p>
-        </div>
+        <div className="text-5xl animate-bounce">⏳</div>
       </div>
     );
   }
 
   if (!auction || (!auction.is_active && auction.end_time > Date.now())) {
     return (
-      <div className="min-h-screen bg-black relative overflow-hidden flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/30 via-black to-teal-950/20"></div>
-        <div className="relative z-10 text-center max-w-md">
-          <div className="text-8xl mb-6">🔒</div>
-          <h1 className="text-4xl font-bold text-white mb-4">Puja no disponible</h1>
-          <p className="text-white/60 text-lg mb-8">
-            Esta puja aún no está activa o no existe. 
-            Solo puedes ver las pujas que el administrador ha activado.
-          </p>
-          <a href="/" className="inline-block px-6 py-3 bg-teal-500 hover:bg-teal-600 text-white font-semibold rounded-xl transition-all">
-            ← Volver al inicio
-          </a>
+      <div className="min-h-screen bg-black flex items-center justify-center p-6 text-center">
+        <div>
+          <div className="text-7xl mb-4">🔒</div>
+          <h1 className="text-3xl font-bold text-white mb-3">Puja no disponible</h1>
+          <p className="text-white/50 mb-6">Esta puja aún no está activa.</p>
+          <a href="/" className="inline-block px-6 py-3 bg-teal-500 text-white font-semibold rounded-xl">← Volver al inicio</a>
         </div>
       </div>
     );
   }
 
   const isFinished = auction.end_time <= Date.now();
+  const leader = bids.length > 0 ? bids[0] : null;
 
   return (
-    <div className="min-h-screen bg-black pb-20 relative overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/30 via-black to-teal-950/20"></div>
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl"></div>
-
+    <div className="min-h-screen bg-black pb-28 md:pb-12">
       <BackgroundMusic />
       {showCelebration && <Celebration bids={bids} />}
-      
-      <div className="relative z-10 container mx-auto p-4 max-w-4xl">
-        <div className="mb-6 flex items-center justify-between">
-          <a href="/" className="inline-flex items-center gap-2 text-white/70 hover:text-teal-400 transition-colors">
-            ← Inicio
-          </a>
-          {auction.is_active && !isFinished && (
-            <button 
-              onClick={() => router.push('/auction/' + auctionId + '/presentation')}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-teal-500/20 border border-teal-400/50 text-teal-300 rounded-lg hover:bg-teal-500/30 transition-all text-sm font-semibold"
-            >
-              🎬 Ver Presentación
+
+      <div className="max-w-2xl mx-auto px-4 pt-4">
+        {/* Barra superior */}
+        <div className="flex items-center justify-between mb-4">
+          <a href="/" className="text-white/60 hover:text-teal-400 text-sm">← Inicio</a>
+          {!isFinished && auction.is_active && (
+            <button onClick={() => router.push('/auction/' + auctionId + '/presentation')} className="text-teal-300 text-sm font-semibold hover:text-teal-200">
+              🎬 Presentación
             </button>
           )}
         </div>
 
-        <div className="bg-white/5 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden border border-white/10">
-          {auction.image_url && (
-            <div className="relative h-64 md:h-80 overflow-hidden">
-              <img src={auction.image_url} alt={auction.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-              <div className="absolute bottom-0 left-0 right-0 p-6">
-                <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">{auction.title}</h1>
-              </div>
-            </div>
-          )}
-          
-          <div className="p-6 md:p-8">
-            <p className="text-white/70 text-lg mb-6">{auction.description}</p>
-
-            {!isFinished && auction.is_active ? (
-              <div className="bg-gradient-to-r from-teal-500 to-emerald-500 p-6 rounded-2xl mb-6 text-center shadow-2xl relative overflow-hidden">
-                <div className="absolute inset-0 bg-white/10 animate-pulse"></div>
-                <div className="relative">
-                  <h2 className="text-lg font-semibold text-white/90 mb-2">⏰ La puja cierra en:</h2>
-                  <Countdown endTime={auction.end_time} />
-                  <div className="mt-3 text-white/90 text-sm">
-                    💰 Puja actual: <span className="font-bold text-white">{highestBid.toLocaleString()} XAF</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-teal-500/10 border-2 border-teal-400/30 p-6 mb-6 rounded-2xl text-center">
-                <div className="text-5xl mb-2">🏆</div>
-                <p className="font-bold text-teal-400 text-2xl">¡La puja ha terminado!</p>
-              </div>
-            )}
-
-            {!isFinished && auction.is_active && (
-              <form onSubmit={handleBid} className={'bg-white/5 backdrop-blur p-6 rounded-2xl mb-6 border-2 ' + (bidSuccess ? 'border-teal-400/50' : 'border-white/10')}>
-                <h3 className="font-bold text-2xl mb-4 text-white flex items-center gap-2">
-                  💰 Realizar una Puja
-                </h3>
-                {message && (
-                  <div className={'mb-4 px-4 py-3 rounded-xl font-semibold ' + (bidSuccess ? 'bg-teal-500/20 border border-teal-400/50 text-teal-200' : 'bg-red-500/20 border border-red-400/50 text-red-200')}>
-                    {message}
-                  </div>
-                )}
-                <div className="space-y-4">
-                  <input 
-                    className="w-full p-4 bg-black/50 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-teal-500 transition-colors text-lg" 
-                    placeholder="👤 Tu nombre" 
-                    value={form.bidder_name} 
-                    onChange={e => setForm({...form, bidder_name: e.target.value})} 
-                    required 
-                  />
-                  <input 
-                    className="w-full p-4 bg-black/50 border border-white/20 rounded-xl text-white placeholder-white/40 focus:outline-none focus:border-teal-500 transition-colors text-lg font-bold" 
-                    type="number" 
-                    placeholder={'💵 Monto en XAF (Mín: ' + (highestBid + 1) + ')'} 
-                    value={form.amount} 
-                    onChange={e => setForm({...form, amount: e.target.value})} 
-                    required 
-                    min={highestBid + 1} 
-                  />
-                  
-                  <AvatarSelector 
-                    selectedAvatar={form.avatar_url} 
-                    onSelect={(url) => setForm({...form, avatar_url: url})} 
-                  />
-                  
-                  {form.avatar_url && (
-                    <div className="flex items-center gap-3 p-3 bg-teal-500/10 border border-teal-400/30 rounded-xl">
-                      <img src={form.avatar_url} alt="Avatar seleccionado" className="w-12 h-12 rounded-full bg-white/10" />
-                      <div>
-                        <p className="text-white/60 text-xs">Avatar seleccionado</p>
-                        <p className="text-teal-400 font-semibold text-sm">✓ Listo para pujar</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <button 
-                    type="submit" 
-                    className="w-full bg-teal-500 hover:bg-teal-600 text-white py-5 rounded-xl font-bold text-xl transition-all transform hover:scale-[1.02] shadow-lg shadow-teal-500/25 active:scale-95"
-                  >
-                    🚀 ¡PUJAR AHORA!
-                  </button>
-
-                  {hasBid && (
-                    <button 
-                      type="button"
-                      onClick={() => router.push('/auction/' + auctionId + '/presentation')}
-                      className="w-full bg-white/5 hover:bg-white/10 border border-white/20 text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
-                    >
-                      🎬 Ver Presentación en Vivo
-                    </button>
-                  )}
-                </div>
-              </form>
-            )}
-
-            <div className="bg-white/5 backdrop-blur rounded-2xl p-6 border border-white/10">
-              <RankingList bids={bids} />
-            </div>
+        {/* Hero */}
+        <div className="relative rounded-3xl overflow-hidden mb-6">
+          {auction.image_url && <img src={auction.image_url} alt={auction.title} className="w-full h-56 md:h-72 object-cover" />}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent"></div>
+          <div className="absolute bottom-0 p-5">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{auction.title}</h1>
+            <p className="text-white/70 text-sm mt-1 line-clamp-2">{auction.description}</p>
           </div>
         </div>
+
+        {/* Countdown + líder */}
+        {!isFinished && auction.is_active ? (
+          <div className="text-center mb-8">
+            <p className="text-white/50 text-xs uppercase tracking-widest mb-2">Cierra en</p>
+            <Countdown endTime={auction.end_time} />
+            {leader && (
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {leader.avatar_url ? (
+                  <img src={leader.avatar_url} className="w-8 h-8 rounded-full border border-teal-400/50" alt={leader.bidder_name} />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-teal-500 grid place-items-center text-white text-sm font-bold">{leader.bidder_name.charAt(0)}</div>
+                )}
+                <span className="text-white/60 text-sm">Lidera</span>
+                <span className="text-teal-300 font-bold tabular-nums">{leader.amount.toLocaleString()} XAF</span>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center mb-8">
+            <div className="text-5xl mb-2">🏆</div>
+            <p className="font-bold text-teal-400 text-xl">¡Puja finalizada!</p>
+          </div>
+        )}
+
+        {/* Formulario */}
+        {!isFinished && auction.is_active && (
+          <form id="bid-form" onSubmit={handleBid} className="mb-10 scroll-mt-4">
+            <h2 className="font-bold text-lg text-white mb-4">Haz tu puja</h2>
+            {message && (
+              <div className={'mb-4 px-4 py-3 rounded-xl text-sm font-semibold ' + (bidSuccess ? 'bg-teal-500/15 border border-teal-400/40 text-teal-200' : 'bg-red-500/15 border border-red-400/40 text-red-200')}>
+                {message}
+              </div>
+            )}
+            <div className="space-y-4">
+              <input
+                className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/30 focus:outline-none focus:border-teal-500 text-base"
+                placeholder="Tu nombre"
+                value={form.bidder_name}
+                onChange={e => setForm({...form, bidder_name: e.target.value})}
+                required
+              />
+              <input
+                className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/30 focus:outline-none focus:border-teal-500 text-lg font-bold tabular-nums"
+                type="number"
+                placeholder={'Monto en XAF (mín. ' + (highestBid + 1) + ')'}
+                value={form.amount}
+                onChange={e => setForm({...form, amount: e.target.value})}
+                required
+                min={highestBid + 1}
+                inputMode="numeric"
+              />
+              <AvatarSelector selectedAvatar={form.avatar_url} onSelect={(url) => setForm({...form, avatar_url: url})} />
+              <button type="submit" className="w-full bg-teal-500 hover:bg-teal-600 active:scale-[0.98] text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-lg shadow-teal-500/25">
+                🚀 ¡PUJAR AHORA!
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Ranking */}
+        <RankingList bids={bids} />
       </div>
+
+      {/* Barra fija móvil */}
+      {!isFinished && auction.is_active && (
+        <div className="fixed bottom-0 inset-x-0 md:hidden bg-black/80 backdrop-blur-lg border-t border-white/10 px-4 py-3 flex items-center gap-3 z-40">
+          <div className="flex-1">
+            <p className="text-white/50 text-[10px] uppercase tracking-wide">Tiempo</p>
+            <Countdown endTime={auction.end_time} compact />
+          </div>
+          <div className="flex-1 text-right">
+            <p className="text-white/50 text-[10px] uppercase tracking-wide">Puja alta</p>
+            <p className="text-teal-300 font-bold tabular-nums text-sm">{highestBid.toLocaleString()} XAF</p>
+          </div>
+          <button onClick={scrollToForm} className="bg-teal-500 text-white font-bold px-5 py-3 rounded-xl active:scale-95">
+            Pujar
+          </button>
+        </div>
+      )}
     </div>
   );
 }

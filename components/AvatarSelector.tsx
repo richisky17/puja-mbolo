@@ -15,40 +15,30 @@ const AVATARS = [
   { id: 'bear', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bear&backgroundColor=e17055', emoji: '🐻' },
 ];
 
-interface AvatarSelectorProps {
-  selectedAvatar: string;
-  onSelect: (url: string) => void;
-}
-
-export default function AvatarSelector({ selectedAvatar, onSelect }: AvatarSelectorProps) {
+export default function AvatarSelector({ selectedAvatar, onSelect }: { selectedAvatar: string; onSelect: (url: string) => void }) {
   return (
     <div>
-      <label className="block text-white/80 text-sm font-medium mb-3">
-        🎭 Elige tu avatar
-      </label>
-      <div className="grid grid-cols-6 gap-2 md:gap-3">
+      <div className="flex items-center justify-between mb-3">
+        <label className="text-white/80 text-sm font-semibold">Elige tu avatar</label>
+        <span className="text-white/40 text-xs md:hidden">Desliza →</span>
+      </div>
+      <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:grid md:grid-cols-6 md:overflow-visible">
         {AVATARS.map((avatar) => (
           <button
             key={avatar.id}
             type="button"
             onClick={() => onSelect(avatar.url)}
+            aria-label={'Avatar ' + avatar.emoji}
             className={
-              'relative aspect-square rounded-xl overflow-hidden border-2 transition-all hover:scale-110 ' +
+              'relative shrink-0 snap-start w-16 h-16 md:w-full md:aspect-square rounded-2xl overflow-hidden border-2 transition-all active:scale-90 ' +
               (selectedAvatar === avatar.url
-                ? 'border-teal-400 shadow-lg shadow-teal-500/50 scale-110'
-                : 'border-white/10 hover:border-white/30')
+                ? 'border-teal-400 ring-4 ring-teal-400/30'
+                : 'border-white/10 hover:border-white/40')
             }
-            title={avatar.emoji}
           >
-            <img
-              src={avatar.url}
-              alt={avatar.emoji}
-              className="w-full h-full object-cover bg-white/5"
-            />
+            <img src={avatar.url} alt={avatar.emoji} className="w-full h-full object-cover" />
             {selectedAvatar === avatar.url && (
-              <div className="absolute inset-0 bg-teal-500/20 flex items-center justify-center">
-                <span className="text-2xl">✓</span>
-              </div>
+              <span className="absolute inset-0 grid place-items-center bg-teal-500/40 text-white text-2xl font-bold">✓</span>
             )}
           </button>
         ))}
